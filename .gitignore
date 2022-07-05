@@ -22,6 +22,6 @@ pnpm-debug.log*
 *.sw?
 
 # other
-package.json
+
 yarn.lock
 HOW-TO-USE.pdf

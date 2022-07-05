@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 export const route = createRouter({
   history: createWebHistory(),
   routes: [
+    { path: '/', redirect: 'coaches' },
     { path: '/coaches', component: null },
     {
       path: '/coaches/:id',
