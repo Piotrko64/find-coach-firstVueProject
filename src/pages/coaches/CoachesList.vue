@@ -1,16 +1,18 @@
 <template>
-  <section>FILTER</section>
+  <base-dialog :show="!!error" title="error" @close="handleError">
+    <p>{{ error }}</p>
+  </base-dialog>
   <coach-filter @change-filter="changeList"></coach-filter>
   <section>
     <base-card>
       <div class="controls">
-        <base-button mode="outline">REFRESH</base-button>
+        <base-button mode="outline" @click="loadCoaches">REFRESH</base-button>
         <base-button v-if="!isCoach" link to="/register"
           >REGISTER AS COACH</base-button
         >
       </div>
-
-      <ul v-if="hasCoaches">
+      <div v-if="isLoading"><base-spinner></base-spinner></div>
+      <ul v-else-if="hasCoaches">
         <coach-item
           v-for="coach in filteredCoaches"
           :key="coach.id"
@@ -31,10 +33,14 @@ import CoachItem from '../../components/coaches/CoachItem.vue';
 import CoachFilter from '../../components/coaches/CoachFilter.vue';
 
 import BaseCard from '../../components/ui/BaseCard.vue';
+import BaseSpinner from '../../components/ui/BaseSpinner.vue';
+import BaseDialog from '../../components/ui/BaseDialog.vue';
 
 export default {
   data() {
     return {
+      error: null,
+      isLoading: true,
       activeFilter: {
         frontend: true,
         backend: true,
@@ -46,6 +52,8 @@ export default {
     CoachItem,
     BaseCard,
     CoachFilter,
+    BaseSpinner,
+    BaseDialog,
   },
   computed: {
     filteredCoaches() {
@@ -66,13 +74,28 @@ export default {
     },
 
     hasCoaches() {
-      return this.$store.getters['coaches/hasCoaches'];
+      return !this.isLoading && this.$store.getters['coaches/hasCoaches'];
     },
   },
   methods: {
+    handleError() {
+      this.error = null;
+    },
     changeList(filter) {
       this.activeFilter = filter;
     },
+    async loadCoaches() {
+      this.isLoading = true;
+      try {
+        await this.$store.dispatch('coaches/loadCoaches');
+      } catch (err) {
+        this.error = err.message || 'Something went wrong!';
+      }
+      this.isLoading = false;
+    },
+  },
+  created() {
+    this.loadCoaches();
   },
 };
 </script>
