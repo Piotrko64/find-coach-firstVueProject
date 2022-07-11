@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- {{ this.$store.getters['auth/token'] }} -->
     <base-dialog :show="!!error" title="error" @close="handleError">
       <p>{{ error }}</p>
     </base-dialog>
@@ -10,7 +11,10 @@
           <base-button mode="outline" @click="loadCoaches(true)"
             >REFRESH</base-button
           >
-          <base-button v-if="!isCoach" link to="/register"
+          <base-button
+            v-if="isAuthenticated && !isCoach && !isLoading"
+            link
+            to="/register"
             >REGISTER AS COACH</base-button
           >
         </div>
@@ -79,6 +83,9 @@ export default {
 
     hasCoaches() {
       return !this.isLoading && this.$store.getters['coaches/hasCoaches'];
+    },
+    isAuthenticated() {
+      return this.$store.getters['auth/isAuthenticated'];
     },
   },
   methods: {
