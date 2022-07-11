@@ -81,6 +81,7 @@ export default {
       return this.mode === 'login' ? 'Login' : 'Sign up';
     },
   },
+  created() {},
 };
 </script>
 <style scoped>
