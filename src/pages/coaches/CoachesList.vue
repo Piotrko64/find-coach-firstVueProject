@@ -1,32 +1,36 @@
 <template>
-  <base-dialog :show="!!error" title="error" @close="handleError">
-    <p>{{ error }}</p>
-  </base-dialog>
-  <coach-filter @change-filter="changeList"></coach-filter>
-  <section>
-    <base-card>
-      <div class="controls">
-        <base-button mode="outline" @click="loadCoaches">REFRESH</base-button>
-        <base-button v-if="!isCoach" link to="/register"
-          >REGISTER AS COACH</base-button
-        >
-      </div>
-      <div v-if="isLoading"><base-spinner></base-spinner></div>
-      <ul v-else-if="hasCoaches">
-        <coach-item
-          v-for="coach in filteredCoaches"
-          :key="coach.id"
-          :id="coach.id"
-          :firstName="coach.firstName"
-          :lastName="coach.lastName"
-          :rate="coach.hourlyRate"
-          :areas="coach.areas"
-        >
-        </coach-item>
-      </ul>
-      <h3 v-else>No Coaches Found</h3>
-    </base-card>
-  </section>
+  <div>
+    <base-dialog :show="!!error" title="error" @close="handleError">
+      <p>{{ error }}</p>
+    </base-dialog>
+    <coach-filter @change-filter="changeList"></coach-filter>
+    <section>
+      <base-card>
+        <div class="controls">
+          <base-button mode="outline" @click="loadCoaches(true)"
+            >REFRESH</base-button
+          >
+          <base-button v-if="!isCoach" link to="/register"
+            >REGISTER AS COACH</base-button
+          >
+        </div>
+        <div v-if="isLoading"><base-spinner></base-spinner></div>
+        <ul v-else-if="hasCoaches">
+          <coach-item
+            v-for="coach in filteredCoaches"
+            :key="coach.id"
+            :id="coach.id"
+            :firstName="coach.firstName"
+            :lastName="coach.lastName"
+            :rate="coach.hourlyRate"
+            :areas="coach.areas"
+          >
+          </coach-item>
+        </ul>
+        <h3 v-else>No Coaches Found</h3>
+      </base-card>
+    </section>
+  </div>
 </template>
 <script>
 import CoachItem from '../../components/coaches/CoachItem.vue';
@@ -84,10 +88,12 @@ export default {
     changeList(filter) {
       this.activeFilter = filter;
     },
-    async loadCoaches() {
+    async loadCoaches(refresh = false) {
       this.isLoading = true;
       try {
-        await this.$store.dispatch('coaches/loadCoaches');
+        await this.$store.dispatch('coaches/loadCoaches', {
+          forceRefresh: refresh,
+        });
       } catch (err) {
         this.error = err.message || 'Something went wrong!';
       }
