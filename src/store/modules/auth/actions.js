@@ -1,3 +1,4 @@
+let timer;
 export default {
   async login(context, payload) {
     context.dispatch('auth', {
@@ -12,6 +13,12 @@ export default {
     });
   },
   logout(context) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('tokenExpiration');
+
+    clearTimeout(timer);
+
     context.commit('logout');
   },
   async auth(context, payload) {
@@ -33,18 +40,40 @@ export default {
       const error = new Error(resData.message || 'FAILED');
       throw error;
     }
+
+    const expiresIn = +resData.expiresIn * 1000;
+    // const expiresIn = +5000;
+    const expirationDate = new Date().getTime() + expiresIn;
+
     localStorage.setItem('token', resData.idToken);
     localStorage.setItem('userId', resData.localId);
+    localStorage.setItem('tokenExpiration', expirationDate);
+
+    timer = setTimeout(() => {
+      context.dispatch('logout');
+    }, expiresIn);
 
     context.commit('setUser', {
       token: resData.idToken,
       userId: resData.localId,
-      tokenExpiration: resData.expiresIn,
+      tokenExpiration: expirationDate,
     });
   },
   autoLogin(context) {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
+    const tokenExpiration = localStorage.getItem('tokenExpiration');
+
+    const expiresIn = +tokenExpiration - new Date().getTime();
+
+    if (expiresIn < 10000) {
+      return;
+    }
+
+    timer = setTimeout(() => {
+      context.dispatch('logout');
+    }, expiresIn);
+
     if (token && userId) {
       context.commit('setUser', {
         token,
@@ -52,5 +81,9 @@ export default {
         tokenExpiration: null,
       });
     }
+  },
+  async autoLogout(context) {
+    await context.dispatch('logout');
+    context.commit('logout');
   },
 };
